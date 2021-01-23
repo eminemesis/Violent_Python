@@ -8,7 +8,7 @@ def connScan(host, port): #create a socket, ping the address and grab the banner
         skt=socket(AF_INET, SOCK_STREAM) #AF_INET = IPV4, SOCK_STREAM=TCP
         skt.settimeout(2)
         skt.connect((host, int(port)))
-        skt.send('RandomGibberish\n'.encode('utf-8')) #Linux implicitly encodes the message, Windows needs explicit encoding
+        skt.send('RandomGibberish\n'.encode('utf-8')) #worked without encoding on Linux; Windows needs explicit encoding
         msg=skt.recv(150) #adjust the value per your needs
         lock.acquire() #the section above is executed in parallel, the section below is locked until the thread releases the lock
         print('[+] {}/{} is open \nMsg: {} \n'.format(host, port, msg))
@@ -33,7 +33,7 @@ def portScan(host, ports): #iterate connScan through the list of ports
         print(e)
 
 def main():
-    parser=optparse.OptionParser()
+    parser=optparse.OptionParser('[Usage] python %prog -H <targetHost> -P <targetPorts>')
     def port_splitter(option, opt, value, parser):
         setattr(parser.values, option.dest, value.split(','))
     parser.add_option('-H', dest='host', type='string', help='target host')
@@ -41,6 +41,10 @@ def main():
     options, args=parser.parse_args()
     host=options.host
     ports=options.ports
+    if host==None or ports==None:
+        print(parser.usage)
+        print('Use \'python %prog -h\' for more info.')
+        exit(0)
     portScan(host, ports)
 
 if __name__=='__main__':
